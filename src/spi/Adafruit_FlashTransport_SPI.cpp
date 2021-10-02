@@ -95,7 +95,8 @@ bool Adafruit_FlashTransport_SPI::eraseCommand(uint8_t command, uint32_t addr) {
   uint8_t cmd_with_addr[5] = {command};
   fillAddress(cmd_with_addr + 1, addr);
 
-  _spi->transfer(cmd_with_addr, 1 + _addr_len);
+  for (uint8_t i = 0; i <= _addr_len; ++i)
+    _spi->transfer(cmd_with_addr[i]);
 
   endTransaction();
 
@@ -132,7 +133,8 @@ bool Adafruit_FlashTransport_SPI::readMemory(uint32_t addr, uint8_t *data,
   uint8_t const cmd_len =
       1 + _addr_len + (SFLASH_CMD_FAST_READ == _cmd_read ? 1 : 0);
 
-  _spi->transfer(cmd_with_addr, cmd_len);
+  for (uint8_t i = 0; i < cmd_len; ++i)
+    _spi->transfer(cmd_with_addr[i]);
 
   // Use SPI DMA if available for best performance
 #if defined(ARDUINO_NRF52_ADAFRUIT) && defined(NRF52840_XXAA)
@@ -140,7 +142,8 @@ bool Adafruit_FlashTransport_SPI::readMemory(uint32_t addr, uint8_t *data,
 #elif defined(ARDUINO_ARCH_SAMD) && defined(_ADAFRUIT_ZERODMA_H_)
   _spi->transfer(NULL, data, len, true);
 #else
-  _spi->transfer(data, len);
+  for (uint32_t i = 0; i < len; ++i)
+    data[i] = _spi->transfer(0x00);
 #endif
 
   endTransaction();
@@ -156,7 +159,8 @@ bool Adafruit_FlashTransport_SPI::writeMemory(uint32_t addr,
   uint8_t cmd_with_addr[5] = {SFLASH_CMD_PAGE_PROGRAM};
   fillAddress(cmd_with_addr + 1, addr);
 
-  _spi->transfer(cmd_with_addr, 1 + _addr_len);
+  for (uint8_t i = 0; i <= _addr_len; ++i)
+    _spi->transfer(cmd_with_addr[i]);
 
   // Use SPI DMA if available for best performance
 #if defined(ARDUINO_NRF52_ADAFRUIT) && defined(NRF52840_XXAA)
